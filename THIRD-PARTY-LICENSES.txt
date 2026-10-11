@@ -1,0 +1,85 @@
+CrowdPlay Respawned — third-party components and notices
+========================================================
+
+This file identifies third-party code in the public source and the current
+CrowdPlay-Respawned.exe, plus tools used to produce the release. These
+components keep their own licenses. The project's PolyForm Noncommercial
+license does not replace them. The listed version is the version used for
+the current installer unless the component is marked build-only.
+
+Distributed or embedded components
+----------------------------------
+
+1. cloudflared 2026.9.3, Cloudflare, Inc. and contributors
+   Purpose: creates an HTTPS Quick Tunnel for Online mode.
+   License: Apache License 2.0, with additional licenses for embedded Go
+   dependencies. Full Cloudflare license: third_party/cloudflared/LICENSE.
+   Embedded module inventory and license findings:
+   third_party/cloudflared/MODULE-LICENSES.txt.
+   That inventory also includes the Go 1.26.8 runtime's BSD-style license
+   and patent notice and the exact-version notices of all 66 modules
+   recorded in the release binary's build metadata.
+   Source: https://github.com/cloudflare/cloudflared/tree/2026.9.3
+   Release: https://github.com/cloudflare/cloudflared/releases/tag/2026.9.3
+   Release binary SHA-256: 9B95DDC2EBA67B86ED3DC4CC2A15881960563031B52CE564376AF41FB91AD402
+
+2. xdelta3 3.2.0, Joshua P. MacDonald and contributors
+   Purpose: generates and applies binary patches locally.
+   License: Apache License 2.0. Full text: tools/xdelta3/LICENSE.
+   Source: https://github.com/jmacd/xdelta/tree/v3.2.0
+   Tool binary SHA-256: 6E812B38484D0C764291779FADEE83FFBE2ECEACCB4E3A21F8A043A02654A01E
+   The release's static xdelta3 binary also includes:
+     - XZ Utils liblzma 5.8.3, XZ Utils authors and contributors,
+       BSD Zero Clause License (0BSD). Text:
+       tools/xdelta3/liblzma-0BSD.LICENSE.
+       Source: https://github.com/tukaani-project/xz/tree/v5.8.3
+     - BLAKE3 C 1.8.5, BLAKE3 team and contributors, offered under
+       CC0 1.0 or Apache License 2.0. This release relies on the
+       Apache License 2.0 option (tools/xdelta3/LICENSE).
+       Source: https://github.com/BLAKE3-team/BLAKE3/tree/1.8.5
+
+3. CPython 3.12.10 Windows embeddable distribution, Python Software Foundation
+   and other credited contributors
+   Purpose: runs the local patch/reconstruction helper during installation.
+   Primary license: Python Software Foundation License Version 2; the
+   distribution incorporates separately licensed components and Microsoft
+   redistributable material. The complete LICENSE.txt from the exact
+   embeddable distribution is at third_party/python-embed/LICENSE.txt.
+   Source: https://www.python.org/downloads/release/python-31210/
+   ZIP SHA-256: 4ACBED6DD1C744B0376E3B1CF57CE906F9DC9E95E68824584C8099A63025A3C3
+
+4. QR Code Generator for JavaScript, Kazuhiko Arase
+   Purpose: renders QR codes in the host's browser page.
+   License: MIT. Full notice: installer/assets/qrcode-generator.LICENSE.
+   Source: https://github.com/kazuhikoarase/qrcode-generator
+
+5. TTG CLI Inspector 0.1.0, Haister and contributors
+   Purpose: reads and repacks archive entries during local installation.
+   License: MIT. Full notice: tools/vendor/ttg-cli-inspector-LICENSE.txt.
+   Vendored source: tools/vendor/ttg_cli_inspector/.
+   Source: https://github.com/haister/ttg-cli-inspector
+
+6. Minecraft-Font / Minecraft.otf, Idrees Hassan
+   Purpose: font used on the voting pages.
+   License: SIL Open Font License 1.1. Full notice:
+   installer/assets/Minecraft-OFL.LICENSE.
+   Source: https://github.com/IdreesInc/Minecraft-Font
+   Font SHA-256: EBC7A7BE9F69479F02875AF1FE79A2B93CC868B83BE4F6369ECCEB45FABE5EE6
+
+Creation and build tools not distributed as standalone files
+------------------------------------------------------------
+
+7. Cube 3D Text, EaseCation and contributors
+   Used to create the season banner artwork. No tool code is distributed.
+   License of the tool: MIT.
+   Source and license: https://github.com/EaseCation/cube-3d-text
+
+8. TinyCC 0.9.27, Fabrice Bellard and contributors
+   Used to compile the DirectInput proxy DLLs. The compiler itself is not
+   distributed in this repository or installer.
+   License of the compiler: GNU Lesser General Public License 2.1.
+   Source and license: https://github.com/TinyCC/tinycc
+
+Windows and .NET Framework system components are required on the build or
+consumer machine but are not supplied as standalone files in this repository.
+The game software, archives, scripts, and marks remain with their owners.

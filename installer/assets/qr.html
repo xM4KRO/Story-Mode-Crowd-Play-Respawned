@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#79553a">
+  <title>Crowd Play QR Code</title>
+  <style>
+    @font-face { font-family: CrowdMinecraft; src: url('/font.otf') format('opentype'); font-display: swap; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; padding: 22px 16px 40px; color: #fff;
+      background: #79553a url('/vote-dirt.png') center center / cover no-repeat;
+      font: 18px CrowdMinecraft, ui-monospace, monospace; text-align: center;
+      text-shadow: 2px 2px #292019; image-rendering: pixelated; }
+    main { max-width: 520px; margin: auto; }
+    .logo { display: block; width: min(90vw, 600px); max-width: none; height: auto;
+      position: relative; left: 50%; transform: translateX(-50%);
+      margin: 6px 0 4px; image-rendering: auto; }
+    h1 { margin: 16px 0 8px; font-size: clamp(24px, 5vw, 34px); }
+    p { line-height: 1.4; }
+    #qr { display: inline-block; max-width: 100%; padding: 14px; background: #fff;
+      border: 4px solid #17120e; margin: 10px auto 18px; text-shadow: none; }
+    #qr svg { display: block; width: min(72vw, 330px); height: auto; image-rendering: pixelated; }
+    .room { color: #ffff55; letter-spacing: 3px; }
+    a { color: #ffff55; overflow-wrap: anywhere; }
+    .error { color: #ff7979; }
+    footer { font-size: 12px; margin-top: 28px; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="/voting-banner.png" alt="Crowd Play">
+    <p>Scan this code with a phone to join the room.</p>
+    <div id="qr" role="img" aria-label="QR code for the Crowd Play room"></div>
+    <p>Room <span class="room" id="room"></span></p>
+    <p><a id="joinLink"></a></p>
+    <p id="error" class="error" role="alert"></p>
+    <footer>QR encoder: <a href="/qrcode-generator-license.txt">MIT license</a></footer>
+  </main>
+  <script src="/qrcode-generator.js"></script>
+  <script>
+    const joinUrl = '__JOIN_URL__';
+    const room = '__ROOM_CODE__';
+    document.getElementById('room').textContent = room;
+    const link = document.getElementById('joinLink');
+    link.href = joinUrl;
+    link.textContent = joinUrl;
+    try {
+      const code = qrcode(0, 'M');
+      code.addData(joinUrl);
+      code.make();
+      document.getElementById('qr').innerHTML = code.createSvgTag(8, 4);
+    } catch (error) {
+      document.getElementById('qr').hidden = true;
+      document.getElementById('error').textContent = 'Could not generate a QR code. Use the join link above.';
+    }
+  </script>
+</body>
+</html>

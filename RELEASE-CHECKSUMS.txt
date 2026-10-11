@@ -1,0 +1,11 @@
+CrowdPlay Respawned — first public release
+
+SHA-256 (CrowdPlay-Respawned.exe):
+6284032D22395B772DD616177F9F08D4E47A624BC255290D148B37BA20F0E0AC
+
+Size: 48,954,368 bytes
+
+This is the exact current patch-based installer in this source package. No
+earlier installer version is included. Verify on Windows with:
+
+  Get-FileHash -Algorithm SHA256 .\CrowdPlay-Respawned.exe

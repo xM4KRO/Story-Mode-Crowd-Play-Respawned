@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#79553a">
+  <title>Crowd Play</title>
+  <style>
+    @font-face { font-family: CrowdMinecraft; src: url('/font.otf') format('opentype'); font-display: swap; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; padding: 18px 14px 28px; color: #fff;
+      background: #79553a url('/vote-dirt.png') center center / cover no-repeat;
+      font: 18px CrowdMinecraft, ui-monospace, monospace;
+      text-align: center; text-shadow: 2px 2px #292019; image-rendering: pixelated; }
+    main { max-width: 440px; margin: auto; }
+    .logo { display: block; width: min(90vw, 600px); max-width: none; height: auto;
+      position: relative; left: 50%; transform: translateX(-50%);
+      margin: 6px 0 4px; image-rendering: auto; }
+    h1 { margin: 16px 0 6px; font-size: clamp(24px, 5vw, 34px); line-height: 1.2; }
+    .sub { color: #ddd; margin: 4px 0 16px; line-height: 1.4; }
+    .room-disclosure summary { display: list-item; width: max-content; max-width: 100%;
+      margin: 0 auto; cursor: pointer; }
+    .room-disclosure .room { display: block; margin-top: 6px; }
+    .room { color: #ffff55; letter-spacing: 3px; }
+    .status { min-height: 2.8em; line-height: 1.4; margin: 14px 0; }
+    .error { color: #ff7979; min-height: 1.4em; }
+    button { display: block; width: 100%; margin: 10px auto; padding: 15px 10px;
+      font: inherit; font-size: 20px; line-height: 1.3; overflow-wrap: anywhere;
+      color: #fff; text-shadow: 2px 2px #333; background: #6f6f6f;
+      border: 0; outline: 3px solid #000; cursor: pointer;
+      box-shadow: inset 3px 3px #bcbcbc, inset -3px -3px #3a3a3a; }
+    button:hover:not(:disabled), button:focus-visible { background: #7a89c0; color: #ffffa0; }
+    button.selected { background: #4c7a2a; color: #ffff55; }
+    button:disabled { background: #4a4a4a; color: #aaa; cursor: default; }
+    button.small { max-width: 220px; padding: 10px; font-size: 16px; margin-top: 24px; }
+    .timer { display: none; height: 20px; margin: 16px auto; padding: 3px;
+      background: #090909; outline: 2px solid #393939; }
+    .timer > div { display: flex; width: 100%; height: 100%; gap: 2px; }
+    .timer i { flex: 1 1 0; min-width: 0; background: #191919; box-shadow: inset 0 1px #333; }
+    .timer i.lit { background: var(--timer-tone, #51bc32);
+      box-shadow: inset 0 2px rgba(255,255,255,.28), inset 0 -2px rgba(0,0,0,.25); }
+    .result { position: relative; margin: 8px auto; min-height: 42px; overflow: hidden;
+      background: #000; outline: 3px solid #373737; text-align: left; }
+    .result > i { position: absolute; inset: 0 auto 0 0; background: #3f7a1c; }
+    .result.winner > i { background: #b8941f; }
+    .result > span { position: relative; display: block; padding: 9px 10px;
+      overflow-wrap: anywhere; line-height: 1.25; }
+    #joinEntry input { display: block; width: 100%; padding: 14px; margin: 18px auto;
+      font: inherit; font-size: 30px; text-align: center; text-transform: uppercase;
+      letter-spacing: 6px; color: #ffff55; background: #000; border: 3px solid #aaa; }
+    @media (any-hover: hover) and (any-pointer: fine) {
+      html, html * { cursor: url('/story-mode-cursor.png') 16 16, auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="/voting-banner.png" alt="Crowd Play">
+    <details class="sub room-disclosure" id="roomDetails" open>
+      <summary>Room code</summary>
+      <div class="room" id="room"></div>
+    </details>
+    <div class="status" id="status" role="status" aria-live="polite">Connecting...</div>
+    <div class="timer" id="timer" role="progressbar" aria-label="Voting time remaining"
+      aria-valuemin="0" aria-valuemax="100"><div id="timerFill"></div></div>
+    <div id="choices"></div>
+    <div class="error" id="error" role="alert"></div>
+    <button class="small" id="leave" type="button">Leave Room</button>
+    <button class="small" id="joinAnother" type="button" hidden>Join Another Room</button>
+    <section id="joinEntry" hidden aria-label="Join another room">
+      <p class="sub">Enter the room code shown in the game.</p>
+      <form id="joinForm">
+        <input id="joinCode" maxlength="8" autocomplete="off" autocapitalize="characters"
+          placeholder="CODE" aria-label="Room code" required>
+        <button type="submit">Join Game</button>
+      </form>
+      <div class="error" id="joinError" role="alert"></div>
+    </section>
+  </main>
+  <script>
+    const room = '__ROOM_CODE__';
+    const byId = id => document.getElementById(id);
+    let currentPoll = null;
+    let selected = 0;
+    let refreshing = false;
+    let displayMode = '';
+    let showingEntry = false;
+
+    const timerSegments = Array.from({ length: 40 }, () => {
+      const segment = document.createElement('i');
+      byId('timerFill').appendChild(segment);
+      return segment;
+    });
+
+    byId('room').textContent = room;
+    byId('leave').addEventListener('click', async () => {
+      try {
+        await fetch('/api/leave', { method: 'POST',
+          body: new URLSearchParams({ room }), keepalive: true });
+      } catch (_) { /* A closed host should not trap the player on this page. */ }
+      location.href = '/';
+    });
+    byId('joinAnother').addEventListener('click', () => {
+      showingEntry = true;
+      for (const id of ['roomDetails', 'status', 'timer', 'choices', 'error', 'leave', 'joinAnother'])
+        byId(id).hidden = true;
+      byId('joinEntry').hidden = false;
+      byId('joinCode').focus();
+    });
+    byId('joinForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const code = byId('joinCode').value.trim().toUpperCase();
+      const error = byId('joinError');
+      if (!/^[A-Z2-9]{8}$/.test(code)) {
+        error.textContent = 'Enter the eight-character room code.';
+        return;
+      }
+      try {
+        const reply = await fetch('/api/state?room=' + encodeURIComponent(code), { cache: 'no-store' });
+        if (!reply.ok) {
+          const state = await reply.json();
+          error.textContent = state.error || 'Invalid room code';
+          return;
+        }
+        location.href = '/join/' + code;
+      } catch (_) {
+        error.textContent = 'Could not reach the local game';
+      }
+    });
+
+    function disconnected(status, message) {
+      if (showingEntry) return;
+      displayMode = '';
+      byId('timer').style.display = 'none';
+      byId('choices').replaceChildren();
+      byId('status').textContent = status;
+      byId('error').textContent = message;
+      byId('joinAnother').hidden = false;
+    }
+
+    function buildChoices(labels) {
+      const box = byId('choices');
+      box.replaceChildren();
+      labels.forEach((label, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.dataset.choice = String(index + 1);
+        button.addEventListener('click', () => vote(index + 1));
+        box.appendChild(button);
+      });
+    }
+
+    function buildResults(state) {
+      const box = byId('choices');
+      box.replaceChildren();
+      const counts = state.counts || [];
+      const total = counts.reduce((sum, count) => sum + Number(count || 0), 0);
+      (state.choices || []).forEach((label, index) => {
+        const count = Number(counts[index] || 0);
+        const percent = total ? Math.round(100 * count / total) : 0;
+        const row = document.createElement('div');
+        row.className = 'result' + (state.status === 'ended' && state.winner === index + 1 ? ' winner' : '');
+        const fill = document.createElement('i');
+        fill.style.width = percent + '%';
+        const caption = document.createElement('span');
+        caption.textContent = state.status === 'ended' || state.showCounts
+          ? label + ' - ' + count + ' (' + percent + '%)' : label;
+        if (Number(state.hostChoice) === index + 1) caption.textContent += ' [Host]';
+        row.append(fill, caption);
+        box.appendChild(row);
+      });
+    }
+
+    function render(state) {
+      const poll = state.poll || '';
+      if (poll !== currentPoll) {
+        currentPoll = poll;
+        selected = 0;
+        displayMode = '';
+      }
+      const active = state.status === 'active';
+      const ended = state.status === 'ended';
+      const mode = active ? 'choices' : ended ? 'results' : 'idle';
+      if (mode !== displayMode) {
+        displayMode = mode;
+        if (active) buildChoices(state.choices || []);
+        else byId('choices').replaceChildren();
+      }
+      byId('timer').style.display = active ? 'block' : 'none';
+      if (active) {
+        const left = Math.max(0, Number(state.remainingMs || 0));
+        const duration = Math.max(1, Number(state.durationMs || left));
+        const ratio = Math.max(0, Math.min(1, left / duration));
+        const lit = Math.ceil(ratio * timerSegments.length);
+        byId('timer').style.setProperty('--timer-tone', 'hsl(' + Math.round(ratio * 120) + ' 82% 42%)');
+        byId('timer').setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+        timerSegments.forEach((segment, index) => segment.classList.toggle('lit', index < lit));
+        byId('status').textContent = state.paused
+          ? 'Game paused - voting resumes with the game'
+          : 'Choose! ' + (left / 1000).toFixed(1) + 's left';
+        const counts = state.counts || [];
+        const total = counts.reduce((sum, count) => sum + Number(count || 0), 0);
+        byId('choices').querySelectorAll('button').forEach((button, index) => {
+          const count = Number(counts[index] || 0);
+          const percent = total ? Math.round(100 * count / total) : 0;
+          button.textContent = (state.choices || [])[index] || '';
+          if (selected && state.showCounts)
+            button.textContent += ' - ' + count + ' (' + percent + '%)';
+          if (Number(state.hostChoice) === index + 1) button.textContent += ' [Host]';
+          button.disabled = false;
+          button.classList.toggle('selected', Number(button.dataset.choice) === selected);
+        });
+      } else if (ended) {
+        const winner = state.winner > 0 && state.choices[state.winner - 1];
+        byId('status').textContent = winner ? 'The crowd chose: ' + winner : 'Time is up - no votes';
+        buildResults(state);
+      } else {
+        byId('status').textContent = 'Waiting for next poll';
+      }
+    }
+
+    async function refresh() {
+      if (refreshing || showingEntry) return;
+      refreshing = true;
+      try {
+        const reply = await fetch('/api/state?room=' + encodeURIComponent(room), { cache: 'no-store' });
+        const state = await reply.json();
+        if (showingEntry) return;
+        if (reply.status === 403) {
+          byId('room').textContent = '';
+          disconnected('Crowd Play is off in the game',
+            'Ask the host to turn it on, then join with the new code.');
+          return;
+        }
+        if (!reply.ok) {
+          disconnected('Disconnected from room', state.error || 'Could not connect');
+          return;
+        }
+        byId('room').textContent = room;
+        byId('joinAnother').hidden = true;
+        byId('error').textContent = '';
+        render(state);
+      } catch (error) {
+        disconnected('Disconnected from room', error.message || 'Connection lost');
+      } finally {
+        refreshing = false;
+      }
+    }
+
+    async function vote(choice) {
+      try {
+        const body = new URLSearchParams({ room, choice: String(choice) });
+        const reply = await fetch('/api/vote', { method: 'POST', body });
+        const result = await reply.json();
+        if (reply.status === 403 || reply.status === 404) {
+          disconnected('Disconnected from room', result.error || 'Room is no longer available');
+          return;
+        }
+        if (!reply.ok) {
+          byId('error').textContent = result.error || 'Vote failed';
+          return;
+        }
+        selected = choice;
+        byId('error').textContent = '';
+        refresh();
+      } catch (error) {
+        disconnected('Disconnected from room', error.message || 'Connection lost');
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 400);
+  </script>
+</body>
+</html>

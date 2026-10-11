@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#79553a">
+  <title>Crowd Play</title>
+  <style>
+    @font-face { font-family: CrowdMinecraft; src: url('/font.otf') format('opentype'); font-display: swap; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; padding: 18px 14px 28px; color: #fff;
+      background: #79553a url('/vote-dirt.png') center center / cover no-repeat;
+      font: 18px CrowdMinecraft, ui-monospace, monospace;
+      text-align: center; text-shadow: 2px 2px #292019; image-rendering: pixelated; }
+    main { max-width: 440px; margin: auto; }
+    .logo { display: block; width: min(90vw, 600px); max-width: none; height: auto;
+      position: relative; left: 50%; transform: translateX(-50%);
+      margin: 6px 0 4px; image-rendering: auto; }
+    h1 { margin: 16px 0 6px; font-size: clamp(24px, 5vw, 34px); line-height: 1.2; }
+    .sub { color: #ddd; margin: 4px 0 16px; line-height: 1.4; }
+    input { display: block; width: 100%; padding: 14px; margin: 18px auto;
+      font: inherit; font-size: 30px; text-align: center; text-transform: uppercase;
+      letter-spacing: 6px; color: #ffff55; background: #000; border: 3px solid #aaa; }
+    button { display: block; width: 100%; margin: 10px auto; padding: 15px 10px;
+      font: inherit; font-size: 20px; line-height: 1.3; overflow-wrap: anywhere;
+      color: #fff; text-shadow: 2px 2px #333; background: #6f6f6f;
+      border: 0; outline: 3px solid #000; cursor: pointer;
+      box-shadow: inset 3px 3px #bcbcbc, inset -3px -3px #3a3a3a; }
+    button:hover, button:focus-visible { background: #7a89c0; color: #ffffa0; }
+    #error { min-height: 1.4em; color: #ff7979; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="/voting-banner.png" alt="Crowd Play">
+    <p class="sub">Enter the room code shown in the game.</p>
+    <form id="join">
+      <input id="code" maxlength="8" autocomplete="off" autocapitalize="characters"
+        placeholder="CODE" aria-label="Room code" required>
+      <button type="submit">Join Game</button>
+    </form>
+    <p id="error" role="alert">__INITIAL_ERROR__</p>
+  </main>
+  <script>
+    document.getElementById('join').addEventListener('submit', async event => {
+      event.preventDefault();
+      const code = document.getElementById('code').value.trim().toUpperCase();
+      const error = document.getElementById('error');
+      if (!/^[A-Z2-9]{8}$/.test(code)) {
+        error.textContent = 'Enter the eight-character room code.';
+        return;
+      }
+      try {
+        const reply = await fetch('/api/state?room=' + encodeURIComponent(code), { cache: 'no-store' });
+        if (!reply.ok) {
+          const state = await reply.json();
+          error.textContent = state.error || 'Invalid room code';
+          return;
+        }
+        location.href = '/join/' + code;
+      } catch (_) {
+        error.textContent = 'Could not reach the local game';
+      }
+    });
+  </script>
+</body>
+</html>
