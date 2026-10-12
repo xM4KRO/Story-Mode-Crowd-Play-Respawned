@@ -1,12 +1,12 @@
 <img width="1338" height="311" alt="Default_Banner" src="https://github.com/user-attachments/assets/bd61ffba-5065-4c09-a38b-7cb565065530" />
 
-# CrowdPlay Respawned
+# Crowd Play Respawned
 
 YouTube Showcase Link: https://www.youtube.com/watch?v=5s3w1kBAH7M
 
 Reddit Post: https://www.reddit.com/r/MinecraftStoryMode/comments/1x3h8dm/title_i_revived_crowdplay_for_s2_and_introduced/
 
-CrowdPlay Respawned adds browser voting to the supported 64-bit Windows GOG releases of *Minecraft: Story Mode* Season 1 and Season 2. A host plays the game while guests use a phone or desktop browser to vote on story choices or host-created polls. The same installation supports a local network room and an Online room using a Cloudflare Quick Tunnel.
+Crowd Play Respawned adds browser voting to the supported 64-bit Windows GOG releases of *Minecraft: Story Mode* Season 1 and Season 2. A host plays the game while guests use a phone or desktop browser to vote on story choices or host-created polls. The same installation supports a local network room and an Online room using a Cloudflare Quick Tunnel.
 
 This is our first public release. The repository includes the current patch-based `CrowdPlay-Respawned.exe` and the source used for its installer, host, proxy, voting pages, and patching pipeline. It contains no complete stock game archives, original game executables, or private modified sidecar archives. Older installer versions are not part of this release.
 
@@ -24,7 +24,7 @@ See [USAGE.md](USAGE.md) for the full installation and voting guide, [TECHNICAL.
 
 ## Remove the mod
 
-Close the game and run `UninstallCrowdPlay.exe` from its game folder. Each season has its own uninstaller. It checks the installed-file manifest, removes files owned by CrowdPlay Respawned and known generated settings, and leaves original game files in place. It stops for review if an owned file was changed after installation.
+Close the game and run `UninstallCrowdPlay.exe` from its game folder. Each season has its own uninstaller. It checks the installed-file manifest, removes files owned by Crowd Play Respawned and known generated settings, and leaves original game files in place. It stops for review if an owned file was changed after installation.
 
 ## Source and rebuilding
 
