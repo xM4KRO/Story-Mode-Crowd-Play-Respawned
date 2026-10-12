@@ -1,3 +1,5 @@
+<img width="1338" height="311" alt="Default_Banner" src="https://github.com/user-attachments/assets/bd61ffba-5065-4c09-a38b-7cb565065530" />
+
 # CrowdPlay Respawned
 
 YouTube Showcase Link: https://www.youtube.com/watch?v=5s3w1kBAH7M
